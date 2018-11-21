@@ -2,42 +2,111 @@ import jade.core.*;
 import jade.core.behaviours.*;
 import jade.lang.acl.*;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+
 public class SlaveAgent extends Agent
 {
+    private int numberOfAttributes = 5; // Number of attributes
+    private int numberOfClasses = 2; //Number of classes
+
+    private double[] attributes;
+    private ArrayList<double[]> dataSet = new ArrayList<>();
+
+    private double[][] avg = new double[numberOfClasses][numberOfAttributes];
+    private double[][] gaus = new double[numberOfClasses][numberOfAttributes];
+
+
     public void setup()
     {
         System.out.println("\nAgent "+this.getAID()+" is started.");
-        myBehaviour b=new myBehaviour();
-        System.out.println("\nNow agent "+getAID()+" is receiving a message...");
-        addBehaviour(b);
-        if(b.finished)
-            removeBehaviour(b);
+        OpenFile a = new OpenFile();
+        addBehaviour(a);
     }
-    class myBehaviour extends CyclicBehaviour
+    class OpenFile extends OneShotBehaviour
     {
-        private boolean finished = false;
         public void action()
         {
             MessageTemplate mt = MessageTemplate.and(
-                    MessageTemplate.MatchPerformative( ACLMessage.QUERY_IF ),
+                    MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
                     MessageTemplate.MatchLanguage("my-language"));
 
             ACLMessage msg = receive(mt);
-            if (msg != null)
-            {
-                System.out.println("Message: " + msg.getContent() + " was sended by " + msg.getSender());
 
-                ACLMessage answ = new ACLMessage(ACLMessage.INFORM);
-                answ.addReceiver(msg.getSender());
-                answ.setContent("Hello Master. I am agent "+ answ.getSender());
-                answ.setLanguage("human-language");
-                answ.setOntology("Parents");
-                send(answ);
+            String line;
+            String[] lines;
+            String csvFile = msg.getContent(); //file path
+            String csvSplitBy = ",";
+
+            try(BufferedReader bk = new BufferedReader(new FileReader(csvFile)) )  {
+                bk.readLine(); // If first string is trash, don't touch
+                while ((line = bk.readLine()) != null) {
+                    attributes = new double[numberOfAttributes];
+                    lines = line.split(csvSplitBy);
+                    for(int i = 0; i < numberOfAttributes; i++){
+                        attributes[i] = Double.parseDouble(lines[i]);
+                    }
+                    dataSet.add(attributes);
+                }
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            else
-            {
-                block();
+
+
+            AvgCalculate b = new AvgCalculate();
+            addBehaviour(b);
+        }
+    }
+    class AvgCalculate extends OneShotBehaviour
+    {
+        public void action(){
+            //initialize
+            avg[0][numberOfAttributes-1] = 1; //first class;
+            avg[1][numberOfAttributes-1] = 2; //second class;
+            gaus[0][numberOfAttributes-1] = 1;
+            gaus[1][numberOfAttributes-1] = 2;
+            int cnt1 = 0;
+            int cnt2 = 0;
+
+            //average of each attribute
+            for (int i = 0; i < numberOfAttributes-1; i++) {
+                for(double[] tmp : dataSet) {
+                    if(tmp[numberOfAttributes-1] == avg[0][numberOfAttributes-1] ){
+                        avg[0][i] =+ tmp[i];
+                        if(i == 0){
+                            cnt1++;
+                        }
+                    }
+                    else{
+                        avg[1][i] =+ tmp[i];
+                        if(i == 0){
+                            cnt2++;
+                        }
+                    }
+                }
+                avg[0][i] = avg[0][i]/cnt1;
+                avg[1][i] = avg[1][i]/cnt2;
             }
+
+            //gauss distribution of each attribute
+            for (int i = 0; i < numberOfAttributes-1; i++) {
+                for(double[] tmp : dataSet){
+                    if(tmp[numberOfAttributes-1] == avg[0][numberOfAttributes-1] ){
+                        gaus[0][i] =+ Math.pow((tmp[i] - avg[0][i]),2);
+                    }
+                    else{
+                        gaus[0][i] =+ Math.pow((tmp[i] - avg[1][i]),2);
+                    }
+                }
+                gaus[0][i] = gaus[0][i]/cnt1;
+                gaus[1][i] = gaus[1][i]/cnt2;
+            }
+
         }
     }
 }
