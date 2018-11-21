@@ -44,26 +44,7 @@ public class SlaveAgent extends Agent
             answ = new ACLMessage(ACLMessage.INFORM);
             answ.addReceiver(msg.getSender());
 
-            String line;
-            String[] lines;
-            String csvFile = msg.getContent(); //file path
-            String csvSplitBy = ",";
-
-            try(BufferedReader bk = new BufferedReader(new FileReader(csvFile)) )  {
-                bk.readLine(); // If first string is trash, don't touch
-                while ((line = bk.readLine()) != null) {
-                    attributes = new double[numberOfAttributes];
-                    lines = line.split(csvSplitBy);
-                    for(int i = 0; i < numberOfAttributes; i++){
-                        attributes[i] = Double.parseDouble(lines[i]);
-                    }
-                    dataSet.add(attributes);
-                }
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            dataSet = CSVReader.parseCSV(numberOfAttributes,msg.getContent());
 
 
             AvgCalculate b = new AvgCalculate();
