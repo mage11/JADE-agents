@@ -5,13 +5,14 @@ import jade.lang.acl.*;
 
 public class MasterAgent extends Agent
 {
+    private int numberOfAgents = 2;
     //names of slaves
-    public String receiver1 = "slave1";
-    public String receiver2 = "slave2";
+    private String receiver1 = "slave1";
+    private String receiver2 = "slave2";
 
     //IP of slaves
-    public String IP1 = "@192.168.1.101:1099/JADE";
-    public String IP2 = "@192.168.1.101:1099/JADE";
+    private String IP1 = "@192.168.1.101:1099/JADE";
+    private String IP2 = "@192.168.1.101:1099/JADE";
 
     public void setup()
     {
@@ -72,7 +73,7 @@ public class MasterAgent extends Agent
                         Object object2 = (Object) msg.getContentObject();
                     } catch (UnreadableException e){}*/
                     String s = "s";
-                    NewN c = new NewN(s);
+                    Reduce c = new Reduce();
                     addBehaviour(c);
                     finish = true;
                 }
@@ -87,14 +88,10 @@ public class MasterAgent extends Agent
         }
     }
 
-    class NewN extends OneShotBehaviour
+    class Reduce extends OneShotBehaviour
     {
-        private String t;
-        public NewN(String s) {
-            t = s;
-        }
-
         public void action(){
+
 
         }
     }

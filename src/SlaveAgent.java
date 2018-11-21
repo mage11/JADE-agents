@@ -7,6 +7,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SlaveAgent extends Agent
 {
@@ -19,6 +22,9 @@ public class SlaveAgent extends Agent
     private double[][] avg = new double[numberOfClasses][numberOfAttributes];
     private double[][] gaus = new double[numberOfClasses][numberOfAttributes];
 
+    private Map<String,ArrayList<double[]>> map = new HashMap<>();
+
+    ACLMessage answ;
 
     public void setup()
     {
@@ -35,6 +41,8 @@ public class SlaveAgent extends Agent
                     MessageTemplate.MatchLanguage("my-language"));
 
             ACLMessage msg = receive(mt);
+            answ = new ACLMessage(ACLMessage.INFORM);
+            answ.addReceiver(msg.getSender());
 
             String line;
             String[] lines;
@@ -107,6 +115,30 @@ public class SlaveAgent extends Agent
                 gaus[1][i] = gaus[1][i]/cnt2;
             }
 
+            ArrayList<double[]> resultSet = new ArrayList<>();
+            resultSet.add(avg[0]);
+            resultSet.add(gaus[0]);
+            map.put("0", resultSet);
+
+            ArrayList<double[]> resultSet2 = new ArrayList<>();
+            resultSet2.add(avg[1]);
+            resultSet2.add(gaus[1]);
+            map.put("1", resultSet2);
+
+            SenderMsg c = new SenderMsg();
+            addBehaviour(c);
+        }
+    }
+
+    class SenderMsg extends OneShotBehaviour
+    {
+        public void action(){
+            try{
+                answ.setContentObject(new MapSet(map)); //serializable
+            } catch (IOException e){}
+
+            answ.setLanguage("human-language");
+            send(answ);
         }
     }
 }
