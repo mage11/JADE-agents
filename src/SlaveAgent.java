@@ -83,7 +83,7 @@ public class SlaveAgent extends Agent
             //gauss distribution of each attribute
             for (int i = 0; i < numberOfAttributes-1; i++) {
                 for(double[] tmp : dataSet){
-                    if(tmp[numberOfAttributes-1] == avg[0][numberOfAttributes-1] ){
+                    if(tmp[numberOfAttributes-1] == gaus[0][numberOfAttributes-1] ){
                         gaus[0][i] += Math.pow((tmp[i] - avg[0][i]),2);
                     }
                     else{
