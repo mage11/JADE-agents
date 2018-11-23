@@ -1,13 +1,11 @@
 import jade.core.*;
 import jade.core.behaviours.*;
 import jade.lang.acl.*;
+import sup.CSVReader;
+import sup.MapSet;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -66,13 +64,13 @@ public class SlaveAgent extends Agent
             for (int i = 0; i < numberOfAttributes-1; i++) {
                 for(double[] tmp : dataSet) {
                     if(tmp[numberOfAttributes-1] == avg[0][numberOfAttributes-1] ){
-                        avg[0][i] =+ tmp[i];
+                        avg[0][i] += tmp[i];
                         if(i == 0){
                             cnt1++;
                         }
                     }
                     else{
-                        avg[1][i] =+ tmp[i];
+                        avg[1][i] += tmp[i];
                         if(i == 0){
                             cnt2++;
                         }
@@ -86,10 +84,10 @@ public class SlaveAgent extends Agent
             for (int i = 0; i < numberOfAttributes-1; i++) {
                 for(double[] tmp : dataSet){
                     if(tmp[numberOfAttributes-1] == avg[0][numberOfAttributes-1] ){
-                        gaus[0][i] =+ Math.pow((tmp[i] - avg[0][i]),2);
+                        gaus[0][i] += Math.pow((tmp[i] - avg[0][i]),2);
                     }
                     else{
-                        gaus[0][i] =+ Math.pow((tmp[i] - avg[1][i]),2);
+                        gaus[1][i] += Math.pow((tmp[i] - avg[1][i]),2);
                     }
                 }
                 gaus[0][i] = gaus[0][i]/cnt1;

@@ -1,11 +1,17 @@
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Map;
+
 import jade.core.*;
 import jade.core.behaviours.*;
 import jade.lang.acl.*;
+import sup.CSVReader;
+import sup.MapSet;
 
 public class MasterAgent extends Agent
 {
     private int numberOfAgents = 2;
+    private int numberOfAttributes = 5;
     //names of slaves
     private String receiver1 = "slave1";
     private String receiver2 = "slave2";
@@ -13,6 +19,16 @@ public class MasterAgent extends Agent
     //IP of slaves
     private String IP1 = "@192.168.1.101:1099/JADE";
     private String IP2 = "@192.168.1.101:1099/JADE";
+
+    //Files
+    private String content1 = "\"test1.csv \"";
+    private String content2 = "\"test2.csv \"";
+    private String vectorPath = "test.csv";
+
+    private MapSet dataSet1;
+    private MapSet dataSet2;
+    private Map<String, ArrayList<double[]>> resultSet;
+    private double[] vector;
 
     public void setup()
     {
@@ -24,36 +40,32 @@ public class MasterAgent extends Agent
     {
         public void action()
         {
-            ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-            AID receiverAID = new AID(receiver1.concat(IP1));
-            msg.addReceiver(receiverAID);
-            msg.setLanguage("my-language");
-            msg.setEncoding("text/plain");
-            msg.setOntology("Parents");
-            msg.setContent("\"test1.cvs \""); //File name
-            System.out.println(msg.toString());
+
+            ACLMessage msg = setconfig(receiver1, IP1, content1);
             send(msg);
 
             //send msg to 2nd agent
-            ACLMessage msg2 = new ACLMessage(ACLMessage.REQUEST);
-            AID receiverAID2 = new AID(receiver2.concat(IP2));
-            msg2.addReceiver(receiverAID2);
-            msg2.setLanguage("my-language");
-            msg2.setEncoding("text/plain");
-            msg2.setOntology("Parents");
-            msg2.setContent("\"test2.cvs \""); //File name
-            System.out.println(msg2.toString());
+            ACLMessage msg2 = setconfig(receiver2, IP2, content2);
             send(msg2);
 
             ReceiveMsg b = new ReceiveMsg();
             addBehaviour(b);
 
         }
+
+        private ACLMessage setconfig(String receiver, String ip, String content) {
+            ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+            AID receiverAID = new AID(receiver.concat(ip));
+            msg.addReceiver(receiverAID);
+            msg.setLanguage("my-language");
+            msg.setEncoding("text/plain");
+            msg.setOntology("Parents");
+            msg.setContent(content);
+            return msg;
+        }
     }
     class ReceiveMsg extends SimpleBehaviour
     {
-        /*private Object object1;
-        private Object object2;*/
 
         private boolean finish = false;
         public void action(){
@@ -64,18 +76,18 @@ public class MasterAgent extends Agent
             ACLMessage msg = receive(mt);
             if(msg != null){
                 if(msg.getSender().equals(receiver1)){
-                    /*try{
-                        Object object1 = (Object) msg.getContentObject();
-                    } catch (UnreadableException e){}*/
+                    try{
+                        dataSet1 = (MapSet) msg.getContentObject();
+                    } catch (UnreadableException e){}
                 }
                 if(msg.getSender().equals(receiver2)){
-                    /*try{
-                        Object object2 = (Object) msg.getContentObject();
-                    } catch (UnreadableException e){}*/
-                    String s = "s";
+                    try{
+                        dataSet2 = (MapSet) msg.getContentObject();
+                    } catch (UnreadableException e){}
+
+                    finish = true;
                     Reduce c = new Reduce();
                     addBehaviour(c);
-                    finish = true;
                 }
             }
             else{
@@ -88,10 +100,35 @@ public class MasterAgent extends Agent
         }
     }
 
-    class Reduce extends OneShotBehaviour
-    {
-        public void action(){
+    class Reduce extends OneShotBehaviour {
+        public void action() {
+            resultSet.put("0", sum(dataSet1.map.get("0"), dataSet2.map.get("0")));
+            resultSet.put("1", sum(dataSet1.map.get("1"), dataSet2.map.get("1")));
 
+            vector = CSVReader.parseCSV(numberOfAttributes,vectorPath).get(0); //read vector X
+
+            ReadVector d = new ReadVector();
+            addBehaviour(d);
+
+        }
+
+
+        private ArrayList<double[]> sum(ArrayList <double[]> lista, ArrayList <double[]> listb){
+            ArrayList<double[]> results = new ArrayList<>();
+            for (int i = 0; i < 2; i++) { // 2 -> avg and gaus values
+                double[] tmp = new double[numberOfAttributes-1];
+                for (int j = 0; j < numberOfAttributes-1; j++) {
+                    tmp[j] = (lista.get(i)[j] + listb.get(i)[j]) / numberOfAgents;
+                }
+                results.add(tmp);
+            }
+
+            return results;
+        }
+    }
+
+    class ReadVector extends OneShotBehaviour{
+        public void action(){
 
         }
     }
