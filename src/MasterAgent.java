@@ -12,6 +12,7 @@ public class MasterAgent extends Agent
 {
     private int numberOfAgents = 2;
     private int numberOfAttributes = 5;
+    private int numberOfClasses = 2;
     //names of slaves
     private String receiver1 = "slave1";
     private String receiver2 = "slave2";
@@ -29,6 +30,9 @@ public class MasterAgent extends Agent
     private MapSet dataSet2;
     private Map<String, ArrayList<double[]>> resultSet;
     private double[] vector;
+    private double answer;
+
+
 
     public void setup()
     {
@@ -107,7 +111,7 @@ public class MasterAgent extends Agent
 
             vector = CSVReader.parseCSV(numberOfAttributes,vectorPath).get(0); //read vector X
 
-            ReadVector d = new ReadVector();
+            CalculateProb d = new CalculateProb();
             addBehaviour(d);
 
         }
@@ -127,9 +131,35 @@ public class MasterAgent extends Agent
         }
     }
 
-    class ReadVector extends OneShotBehaviour{
+    class CalculateProb extends OneShotBehaviour{
         public void action(){
+            double[][] prob = new double[numberOfClasses][numberOfAttributes];
+            int cnt = 0;
 
+            for(Map.Entry entry : resultSet.entrySet()){
+                ArrayList<double[]> tmp = (ArrayList<double[]>) entry.getValue();
+                double[] u = tmp.get(0);
+                double[] g = tmp.get(1);
+                for (int i = 0; i < numberOfAttributes-1; i++) {
+                    prob[cnt][i] = (1/Math.sqrt(2*Math.PI*g[i]))*Math.exp(-1*(Math.pow((vector[i]-u[i]),2)/(g[i]*2)));
+                }
+                cnt++;
+            }
+
+
+            double [][] resultProb = new double[numberOfClasses][1];
+            for (int i = 0; i < numberOfClasses; i++) {
+                double tmp = 1;
+                for (int j = 0; j < numberOfAttributes-1 ; i++) {
+                    tmp *= prob[cnt][j];
+                }
+                resultProb[cnt][1] = tmp;
+                cnt++;
+            }
+
+
+            System.out.println("1st class: " + resultProb[0][0]);
+            System.out.println("2nd class: " + resultProb[1][0]);
         }
     }
 }
