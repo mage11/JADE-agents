@@ -11,10 +11,9 @@ import java.util.Map;
 
 public class SlaveAgent extends Agent
 {
-    private int numberOfAttributes = 5; // Number of attributes
+    private int numberOfAttributes = 11; // Number of attributes
     private int numberOfClasses = 2; //Number of classes
 
-    private double[] attributes;
     private ArrayList<double[]> dataSet = new ArrayList<>();
 
     private double[][] avg = new double[numberOfClasses][numberOfAttributes];
@@ -30,24 +29,33 @@ public class SlaveAgent extends Agent
         OpenFile a = new OpenFile();
         addBehaviour(a);
     }
-    class OpenFile extends OneShotBehaviour
-    {
-        public void action()
-        {
+
+    class OpenFile extends  SimpleBehaviour{
+        private boolean finish = false;
+        public void action(){
             MessageTemplate mt = MessageTemplate.and(
                     MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
                     MessageTemplate.MatchLanguage("my-language"));
-
             ACLMessage msg = receive(mt);
-            answ = new ACLMessage(ACLMessage.INFORM);
-            answ.addReceiver(msg.getSender());
 
-            dataSet = CSVReader.parseCSV(numberOfAttributes,msg.getContent());
+            if(msg != null){
+                answ = new ACLMessage(ACLMessage.INFORM);
+                answ.addReceiver(msg.getSender());
+                dataSet = CSVReader.parseCSV(numberOfAttributes,msg.getContent());
 
-
-            AvgCalculate b = new AvgCalculate();
-            addBehaviour(b);
+                System.out.println(msg.getContent());
+                finish = true;
+                AvgCalculate b = new AvgCalculate();
+                addBehaviour(b);
+            }
+            else{
+                block();
+            }
         }
+        public boolean done(){
+            return finish;
+        }
+
     }
     class AvgCalculate extends OneShotBehaviour
     {
@@ -107,6 +115,7 @@ public class SlaveAgent extends Agent
             SenderMsg c = new SenderMsg();
             addBehaviour(c);
         }
+
     }
 
     class SenderMsg extends OneShotBehaviour
@@ -116,7 +125,7 @@ public class SlaveAgent extends Agent
                 answ.setContentObject(new MapSet(map)); //serializable
             } catch (IOException e){}
 
-            answ.setLanguage("human-language");
+            answ.setLanguage("my-language");
             send(answ);
         }
     }

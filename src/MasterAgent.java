@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 import jade.core.*;
@@ -10,28 +11,28 @@ import sup.MapSet;
 
 public class MasterAgent extends Agent
 {
+    //------------------------config block-------------------------------
+    //variables
     private int numberOfAgents = 2;
-    private int numberOfAttributes = 5;
+    private int numberOfAttributes = 11;
     private int numberOfClasses = 2;
     //names of slaves
     private String receiver1 = "slave1";
     private String receiver2 = "slave2";
-
     //IP of slaves
     private String IP1 = "@192.168.1.101:1099/JADE";
     private String IP2 = "@192.168.1.101:1099/JADE";
-
     //Files
-    private String content1 = "\"test1.csv \"";
-    private String content2 = "\"test2.csv \"";
-    private String vectorPath = "test.csv";
+    private String content1 = "D:\\test1.csv";
+    private String content2 = "D:\\test2.csv";
+    private String vectorPath = "D:\\vector.csv";
+    //-------------------------------------------------------------------
+
 
     private MapSet dataSet1;
     private MapSet dataSet2;
-    private Map<String, ArrayList<double[]>> resultSet;
+    private Map<String, ArrayList<double[]>> resultSet = new HashMap<>();
     private double[] vector;
-    private double answer;
-
 
 
     public void setup()
@@ -72,23 +73,30 @@ public class MasterAgent extends Agent
     {
 
         private boolean finish = false;
+        private boolean flag1 = false;
+        private boolean flag2 = false;
         public void action(){
             MessageTemplate mt = MessageTemplate.and(
-                    MessageTemplate.MatchPerformative( ACLMessage.REQUEST),
+                    MessageTemplate.MatchPerformative( ACLMessage.INFORM),
                     MessageTemplate.MatchLanguage("my-language"));
 
             ACLMessage msg = receive(mt);
+
             if(msg != null){
-                if(msg.getSender().equals(receiver1)){
+                if(msg.getSender().getLocalName().equals(receiver1)){
                     try{
                         dataSet1 = (MapSet) msg.getContentObject();
+                        flag1 = true;
                     } catch (UnreadableException e){}
                 }
-                if(msg.getSender().equals(receiver2)){
+                if(msg.getSender().getLocalName().equals(receiver2)){
                     try{
                         dataSet2 = (MapSet) msg.getContentObject();
+                        flag2 = true;
                     } catch (UnreadableException e){}
+                }
 
+                if (flag1 & flag2){
                     finish = true;
                     Reduce c = new Reduce();
                     addBehaviour(c);
@@ -102,20 +110,21 @@ public class MasterAgent extends Agent
         public boolean done(){
             return finish;
         }
+
     }
 
     class Reduce extends OneShotBehaviour {
         public void action() {
+
             resultSet.put("0", sum(dataSet1.map.get("0"), dataSet2.map.get("0")));
             resultSet.put("1", sum(dataSet1.map.get("1"), dataSet2.map.get("1")));
 
-            vector = CSVReader.parseCSV(numberOfAttributes,vectorPath).get(0); //read vector X
+            vector = CSVReader.parseCSV(numberOfAttributes-1,vectorPath).get(0); //read vector X
 
             CalculateProb d = new CalculateProb();
             addBehaviour(d);
 
         }
-
 
         private ArrayList<double[]> sum(ArrayList <double[]> lista, ArrayList <double[]> listb){
             ArrayList<double[]> results = new ArrayList<>();
@@ -135,7 +144,6 @@ public class MasterAgent extends Agent
         public void action(){
             double[][] prob = new double[numberOfClasses][numberOfAttributes];
             int cnt = 0;
-
             for(Map.Entry entry : resultSet.entrySet()){
                 ArrayList<double[]> tmp = (ArrayList<double[]>) entry.getValue();
                 double[] u = tmp.get(0);
@@ -144,17 +152,17 @@ public class MasterAgent extends Agent
                     prob[cnt][i] = (1/Math.sqrt(2*Math.PI*g[i]))*Math.exp(-1*(Math.pow((vector[i]-u[i]),2)/(g[i]*2)));
                 }
                 cnt++;
+
             }
 
 
             double [][] resultProb = new double[numberOfClasses][1];
             for (int i = 0; i < numberOfClasses; i++) {
                 double tmp = 1;
-                for (int j = 0; j < numberOfAttributes-1 ; i++) {
-                    tmp *= prob[cnt][j];
+                for (int j = 0; j < prob[i].length-1 ; j++) {
+                    tmp *= prob[i][j];
                 }
-                resultProb[cnt][1] = tmp;
-                cnt++;
+                resultProb[i][0] = tmp;
             }
 
 
