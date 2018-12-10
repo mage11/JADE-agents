@@ -24,7 +24,8 @@ public class MasterAgent extends Agent
     private String IP2 = "@192.168.1.101:1099/JADE";
     //Files
     private String content1 = "D:\\test1.csv";
-    private String content2 = "D:\\test2.csv";
+    //private String content2 = "D:\\test2.csv";
+    private String content2 = "D:\\100mb.csv";
     private String vectorPath = "D:\\vector.csv";
     //-------------------------------------------------------------------
 
@@ -121,8 +122,8 @@ public class MasterAgent extends Agent
 
             vector = CSVReader.parseCSV(numberOfAttributes-1,vectorPath).get(0); //read vector X
 
-            CalculateProb d = new CalculateProb();
-            addBehaviour(d);
+            /*CalculateProb d = new CalculateProb();
+            addBehaviour(d);*/
 
         }
 
@@ -140,7 +141,7 @@ public class MasterAgent extends Agent
         }
     }
 
-    class CalculateProb extends OneShotBehaviour{
+    /*class CalculateProb extends OneShotBehaviour{
         public void action(){
             double[][] prob = new double[numberOfClasses][numberOfAttributes];
             int cnt = 0;
@@ -169,5 +170,5 @@ public class MasterAgent extends Agent
             System.out.println("1st class: " + resultProb[0][0]);
             System.out.println("2nd class: " + resultProb[1][0]);
         }
-    }
+    }*/
 }

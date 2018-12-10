@@ -16,7 +16,7 @@ public class CSVReader {
 
         try(
                 BufferedReader bk = new BufferedReader(new FileReader(csvFile)) )  {
-                //bk.readLine(); // If first string is useless, don't touch
+                bk.readLine(); // If first string is useless, don't touch
                 while ((line = bk.readLine()) != null) {
                 attributes = new double[numberOfAttributes];
                 lines = line.split(csvSplitBy);

@@ -2,16 +2,18 @@ import jade.core.*;
 import jade.core.behaviours.*;
 import jade.lang.acl.*;
 import sup.CSVReader;
+import sup.CSVReaderNew;
 import sup.MapSet;
 
 import java.io.IOException;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class SlaveAgent extends Agent
 {
-    private int numberOfAttributes = 11; // Number of attributes
+    private int numberOfAttributes = 68; // Number of attributes
     private int numberOfClasses = 2; //Number of classes
 
     private ArrayList<double[]> dataSet = new ArrayList<>();
@@ -20,8 +22,14 @@ public class SlaveAgent extends Agent
     private double[][] gaus = new double[numberOfClasses][numberOfAttributes];
 
     private Map<String,ArrayList<double[]>> map = new HashMap<>();
+    private Map<String,ArrayList<double[]>> testMap = new HashMap<>();
+
 
     ACLMessage answ;
+    ACLMessage msg;
+
+    long startT;
+    long finishT;
 
     public void setup()
     {
@@ -36,12 +44,15 @@ public class SlaveAgent extends Agent
             MessageTemplate mt = MessageTemplate.and(
                     MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
                     MessageTemplate.MatchLanguage("my-language"));
-            ACLMessage msg = receive(mt);
+            msg = receive(mt);
 
             if(msg != null){
                 answ = new ACLMessage(ACLMessage.INFORM);
                 answ.addReceiver(msg.getSender());
-                dataSet = CSVReader.parseCSV(numberOfAttributes,msg.getContent());
+
+                 startT = System.currentTimeMillis();
+
+                //dataSet = CSVReader.parseCSV(numberOfAttributes,msg.getContent());
 
                 System.out.println(msg.getContent());
                 finish = true;
@@ -61,7 +72,7 @@ public class SlaveAgent extends Agent
     {
         public void action(){
             //initialize
-            avg[0][numberOfAttributes-1] = 1; //first class;
+            /*avg[0][numberOfAttributes-1] = 1; //first class;
             avg[1][numberOfAttributes-1] = 2; //second class;
             gaus[0][numberOfAttributes-1] = 1;
             gaus[1][numberOfAttributes-1] = 2;
@@ -102,6 +113,9 @@ public class SlaveAgent extends Agent
                 gaus[1][i] = gaus[1][i]/cnt2;
             }
 
+            System.out.println("Cnt1: " + cnt1);
+            System.out.println("Cnt2: " + cnt2);
+
             ArrayList<double[]> resultSet = new ArrayList<>();
             resultSet.add(avg[0]);
             resultSet.add(gaus[0]);
@@ -110,7 +124,16 @@ public class SlaveAgent extends Agent
             ArrayList<double[]> resultSet2 = new ArrayList<>();
             resultSet2.add(avg[1]);
             resultSet2.add(gaus[1]);
-            map.put("1", resultSet2);
+            map.put("1", resultSet2);*/
+
+            map = CSVReaderNew.parseCSV(numberOfAttributes,msg.getContent());
+            finishT = System.currentTimeMillis();
+            System.out.println("Execution time: " + (finishT - startT));
+
+            /*System.out.println("Old map");
+            output(map);*/
+            System.out.println("Test map:");
+            output(map);
 
             SenderMsg c = new SenderMsg();
             addBehaviour(c);
@@ -128,5 +151,23 @@ public class SlaveAgent extends Agent
             answ.setLanguage("my-language");
             send(answ);
         }
+    }
+
+    public void output( Map<String,ArrayList<double[]>> map){
+
+        System.out.println("-----------------------------------");
+        for (Map.Entry entry : map.entrySet()){
+            ArrayList<double[]> tmp = (ArrayList<double[]>) entry.getValue();
+
+            for (double[] d : tmp){
+                for (int i = 0; i < d.length; i++) {
+                    System.out.print(d[i] + " ");
+                }
+                System.out.println();
+            }
+            System.out.println("\n");
+        }
+
+        System.out.println("----------------------------------------\n ");
     }
 }
