@@ -12,15 +12,17 @@ public class CSVReaderNew {
     public static Map<String,ArrayList<double[]>> parseCSV(int numberOfAttributes, String csvFile){
         String line;
         String[] lines;
+        String csvSplitBy = ",";
         double[] attributes = new double[numberOfAttributes];
         double[][] avg = new double[2][numberOfAttributes];
         double[][] disp = new double[2][numberOfAttributes];
 
+        //counters for lines
         int counter_1 = 0;
         int counter_2 = 0;
 
         Map<String,ArrayList<double[]>> map = new HashMap<>();
-        String csvSplitBy = ",";
+
 
         avg[0][numberOfAttributes-1] = 1; //first class;
         avg[1][numberOfAttributes-1] = 2; //second class;

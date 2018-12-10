@@ -4,6 +4,7 @@ import jade.lang.acl.*;
 import sup.CSVReader;
 import sup.CSVReaderNew;
 import sup.MapSet;
+import sup.OutputMap;
 
 import java.io.IOException;
 import java.sql.SQLOutput;
@@ -56,7 +57,7 @@ public class SlaveAgent extends Agent
 
                 System.out.println(msg.getContent());
                 finish = true;
-                AvgCalculate b = new AvgCalculate();
+                Calculate b = new Calculate();
                 addBehaviour(b);
             }
             else{
@@ -68,72 +69,16 @@ public class SlaveAgent extends Agent
         }
 
     }
-    class AvgCalculate extends OneShotBehaviour
+    class Calculate extends OneShotBehaviour
     {
         public void action(){
-            //initialize
-            /*avg[0][numberOfAttributes-1] = 1; //first class;
-            avg[1][numberOfAttributes-1] = 2; //second class;
-            gaus[0][numberOfAttributes-1] = 1;
-            gaus[1][numberOfAttributes-1] = 2;
-            int cnt1 = 0;
-            int cnt2 = 0;
-
-            //average of each attribute
-            for (int i = 0; i < numberOfAttributes-1; i++) {
-                for(double[] tmp : dataSet) {
-                    if(tmp[numberOfAttributes-1] == avg[0][numberOfAttributes-1] ){
-                        avg[0][i] += tmp[i];
-                        if(i == 0){
-                            cnt1++;
-                        }
-                    }
-                    else{
-                        avg[1][i] += tmp[i];
-                        if(i == 0){
-                            cnt2++;
-                        }
-                    }
-                }
-                avg[0][i] = avg[0][i]/cnt1;
-                avg[1][i] = avg[1][i]/cnt2;
-            }
-
-            //gauss distribution of each attribute
-            for (int i = 0; i < numberOfAttributes-1; i++) {
-                for(double[] tmp : dataSet){
-                    if(tmp[numberOfAttributes-1] == gaus[0][numberOfAttributes-1] ){
-                        gaus[0][i] += Math.pow((tmp[i] - avg[0][i]),2);
-                    }
-                    else{
-                        gaus[1][i] += Math.pow((tmp[i] - avg[1][i]),2);
-                    }
-                }
-                gaus[0][i] = gaus[0][i]/cnt1;
-                gaus[1][i] = gaus[1][i]/cnt2;
-            }
-
-            System.out.println("Cnt1: " + cnt1);
-            System.out.println("Cnt2: " + cnt2);
-
-            ArrayList<double[]> resultSet = new ArrayList<>();
-            resultSet.add(avg[0]);
-            resultSet.add(gaus[0]);
-            map.put("0", resultSet);
-
-            ArrayList<double[]> resultSet2 = new ArrayList<>();
-            resultSet2.add(avg[1]);
-            resultSet2.add(gaus[1]);
-            map.put("1", resultSet2);*/
 
             map = CSVReaderNew.parseCSV(numberOfAttributes,msg.getContent());
             finishT = System.currentTimeMillis();
             System.out.println("Execution time: " + (finishT - startT));
 
-            /*System.out.println("Old map");
-            output(map);*/
-            System.out.println("Test map:");
-            output(map);
+            System.out.println("Мap:");
+            OutputMap.output(map);
 
             SenderMsg c = new SenderMsg();
             addBehaviour(c);
@@ -150,24 +95,7 @@ public class SlaveAgent extends Agent
 
             answ.setLanguage("my-language");
             send(answ);
+            System.out.println(answ.getSender().getLocalName() + " sent a message");
         }
-    }
-
-    public void output( Map<String,ArrayList<double[]>> map){
-
-        System.out.println("-----------------------------------");
-        for (Map.Entry entry : map.entrySet()){
-            ArrayList<double[]> tmp = (ArrayList<double[]>) entry.getValue();
-
-            for (double[] d : tmp){
-                for (int i = 0; i < d.length; i++) {
-                    System.out.print(d[i] + " ");
-                }
-                System.out.println();
-            }
-            System.out.println("\n");
-        }
-
-        System.out.println("----------------------------------------\n ");
     }
 }

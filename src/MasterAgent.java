@@ -1,4 +1,5 @@
 import java.io.*;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -8,6 +9,7 @@ import jade.core.behaviours.*;
 import jade.lang.acl.*;
 import sup.CSVReader;
 import sup.MapSet;
+import sup.OutputMap;
 
 public class MasterAgent extends Agent
 {
@@ -23,10 +25,11 @@ public class MasterAgent extends Agent
     private String IP1 = "@192.168.1.101:1099/JADE";
     private String IP2 = "@192.168.1.101:1099/JADE";
     //Files
-    private String content1 = "D:\\test1.csv";
+    //private String content1 = "D:\\test1.csv";
+    private String content1 = "D:\\100mb.csv";
     //private String content2 = "D:\\test2.csv";
     private String content2 = "D:\\100mb.csv";
-    private String vectorPath = "D:\\vector.csv";
+    //private String vectorPath = "D:\\vector.csv";
     //-------------------------------------------------------------------
 
 
@@ -35,9 +38,12 @@ public class MasterAgent extends Agent
     private Map<String, ArrayList<double[]>> resultSet = new HashMap<>();
     private double[] vector;
 
+    private long startT;
+    private long finishT;
 
     public void setup()
     {
+        startT = System.currentTimeMillis();
         System.out.println("\nMaster Agent "+this.getAID()+" is started.");
         PushMsg a = new PushMsg();
         addBehaviour(a);
@@ -76,6 +82,7 @@ public class MasterAgent extends Agent
         private boolean finish = false;
         private boolean flag1 = false;
         private boolean flag2 = false;
+
         public void action(){
             MessageTemplate mt = MessageTemplate.and(
                     MessageTemplate.MatchPerformative( ACLMessage.INFORM),
@@ -88,12 +95,14 @@ public class MasterAgent extends Agent
                     try{
                         dataSet1 = (MapSet) msg.getContentObject();
                         flag1 = true;
+                        System.out.println("Master received a message from " + msg.getSender().getLocalName());
                     } catch (UnreadableException e){}
                 }
                 if(msg.getSender().getLocalName().equals(receiver2)){
                     try{
                         dataSet2 = (MapSet) msg.getContentObject();
                         flag2 = true;
+                        System.out.println("Master received a message from " + msg.getSender().getLocalName());
                     } catch (UnreadableException e){}
                 }
 
@@ -120,10 +129,14 @@ public class MasterAgent extends Agent
             resultSet.put("0", sum(dataSet1.map.get("0"), dataSet2.map.get("0")));
             resultSet.put("1", sum(dataSet1.map.get("1"), dataSet2.map.get("1")));
 
-            vector = CSVReader.parseCSV(numberOfAttributes-1,vectorPath).get(0); //read vector X
+            //vector = CSVReader.parseCSV(numberOfAttributes-1,vectorPath).get(0); //read vector X
 
             /*CalculateProb d = new CalculateProb();
             addBehaviour(d);*/
+            System.out.println("Map from Master:");
+            OutputMap.output(resultSet);
+            finishT = System.currentTimeMillis();
+            System.out.println("Execution time of jade: " + (finishT - startT));
 
         }
 
