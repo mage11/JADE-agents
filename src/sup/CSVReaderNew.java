@@ -34,7 +34,13 @@ public class CSVReaderNew {
             bk.readLine();
             while ((line = bk.readLine()) != null) {
                 lines = line.split(csvSplitBy);
+                if(line.length() < numberOfAttributes)
+                    continue;
+
                 double clss = Double.parseDouble(lines[numberOfAttributes-1]);
+                if(clss == 0)
+                    continue;
+
                 if(clss == avg[0][numberOfAttributes-1]){
                     counter_1++;
                 }
