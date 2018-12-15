@@ -22,8 +22,8 @@ public class MasterAgent extends Agent
     private String receiver1 = "slave1";
     private String receiver2 = "slave2";
     //IP of slaves
-    private String IP1 = "@192.168.1.101:1099/JADE";
-    private String IP2 = "@192.168.1.101:1099/JADE";
+    private String IP1 = "@192.168.1.103:1099/JADE";
+    private String IP2 = "@192.168.1.103:1099/JADE";
     //Files
     //private String content1 = "D:\\test1.csv";
     private String content1 = "D:\\100mb.csv";

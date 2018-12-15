@@ -34,7 +34,7 @@ public class CSVReaderNew {
             bk.readLine();
             while ((line = bk.readLine()) != null) {
                 lines = line.split(csvSplitBy);
-                if(line.length() < numberOfAttributes)
+                if(lines.length != numberOfAttributes)
                     continue;
 
                 double clss = Double.parseDouble(lines[numberOfAttributes-1]);

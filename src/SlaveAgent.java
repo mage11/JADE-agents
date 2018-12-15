@@ -73,12 +73,13 @@ public class SlaveAgent extends Agent
     {
         public void action(){
 
+
             map = CSVReaderNew.parseCSV(numberOfAttributes,msg.getContent());
             finishT = System.currentTimeMillis();
             System.out.println("Execution time: " + (finishT - startT));
 
             System.out.println("Мap:");
-            OutputMap.output(map);
+            //OutputMap.output(map);
 
             SenderMsg c = new SenderMsg();
             addBehaviour(c);
