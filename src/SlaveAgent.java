@@ -1,13 +1,10 @@
 import jade.core.*;
 import jade.core.behaviours.*;
 import jade.lang.acl.*;
-import sup.CSVReader;
 import sup.CSVReaderNew;
 import sup.MapSet;
-import sup.OutputMap;
 
 import java.io.IOException;
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +20,6 @@ public class SlaveAgent extends Agent
     private double[][] gaus = new double[numberOfClasses][numberOfAttributes];
 
     private Map<String,ArrayList<double[]>> map = new HashMap<>();
-    private Map<String,ArrayList<double[]>> testMap = new HashMap<>();
 
 
     ACLMessage answ;
@@ -93,7 +89,6 @@ public class SlaveAgent extends Agent
             try{
                 answ.setContentObject(new MapSet(map)); //serializable
             } catch (IOException e){}
-
             answ.setLanguage("my-language");
             send(answ);
             System.out.println(answ.getSender().getLocalName() + " sent a message");

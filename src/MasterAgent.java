@@ -16,14 +16,14 @@ public class MasterAgent extends Agent
     //------------------------config block-------------------------------
     //variables
     private int numberOfAgents = 2;
-    private int numberOfAttributes = 11;
+    private int numberOfAttributes = 68;
     private int numberOfClasses = 2;
     //names of slaves
     private String receiver1 = "slave1";
     private String receiver2 = "slave2";
     //IP of slaves
-    private String IP1 = "@192.168.1.103:1099/JADE";
-    private String IP2 = "@192.168.1.103:1099/JADE";
+    private String IP1 = "@192.168.1.101:1099/JADE";
+    private String IP2 = "@192.168.1.101:1099/JADE";
     //Files
     //private String content1 = "D:\\test1.csv";
     private String content1 = "D:\\100mb.csv";
@@ -68,6 +68,7 @@ public class MasterAgent extends Agent
         private ACLMessage setconfig(String receiver, String ip, String content) {
             ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
             AID receiverAID = new AID(receiver.concat(ip));
+            receiverAID.addAddresses("http://192.168.1.101:7778/acc");
             msg.addReceiver(receiverAID);
             msg.setLanguage("my-language");
             msg.setEncoding("text/plain");
