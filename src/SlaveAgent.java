@@ -1,8 +1,11 @@
-import jade.core.*;
-import jade.core.behaviours.*;
-import jade.lang.acl.*;
-import sup.CSVReaderNew;
-import sup.MapSet;
+import jade.core.AID;
+import jade.core.Agent;
+import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.SimpleBehaviour;
+import jade.lang.acl.ACLMessage;
+import obj.DataSet;
+import obj.MapSet;
+import sup.DataReader;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,47 +14,46 @@ import java.util.Map;
 
 public class SlaveAgent extends Agent
 {
-    private int numberOfAttributes = 68; // Number of attributes
-    private int numberOfClasses = 2; //Number of classes
+    private int numberOfAttributes;
+    private String filePath;
+    private String agentName;
 
-    private ArrayList<double[]> dataSet = new ArrayList<>();
-
-    private double[][] avg = new double[numberOfClasses][numberOfAttributes];
-    private double[][] gaus = new double[numberOfClasses][numberOfAttributes];
-
-    private Map<String,ArrayList<double[]>> map = new HashMap<>();
+    private Map<Integer, DataSet> map = new HashMap<>();
+    private ArrayList<Map<Integer, DataSet>> dataSet = new ArrayList<>();
 
 
-    ACLMessage answ;
-    ACLMessage msg;
+    private ACLMessage answ;
+    private ACLMessage msg;
 
     long startT;
     long finishT;
 
     public void setup()
     {
-        System.out.println("\nAgent "+this.getAID()+" is started.");
-        OpenFile a = new OpenFile();
+        agentName = this.getAID().toString();
+        System.out.println("\nAgent " + agentName + " is started.");
+        ReceiveMessage a = new ReceiveMessage();
         addBehaviour(a);
     }
 
-    class OpenFile extends  SimpleBehaviour{
+    class ReceiveMessage extends SimpleBehaviour {
         private boolean finish = false;
+
         public void action(){
-            MessageTemplate mt = MessageTemplate.and(
-                    MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
-                    MessageTemplate.MatchLanguage("my-language"));
-            msg = receive(mt);
+            msg = myAgent.receive();
 
             if(msg != null){
-                answ = new ACLMessage(ACLMessage.INFORM);
-                answ.addReceiver(msg.getSender());
+                answ = msg.createReply();
 
-                 startT = System.currentTimeMillis();
+                startT = System.currentTimeMillis();
 
-                //dataSet = CSVReader.parseCSV(numberOfAttributes,msg.getContent());
+                String line = msg.getContent();
+                String[] values = line.split(",");
+                filePath = values[0];
+                numberOfAttributes = Integer.parseInt(values[1]);
 
-                System.out.println(msg.getContent());
+
+                System.out.println("\nAgent " + agentName + " received message.");
                 finish = true;
                 Calculate b = new Calculate();
                 addBehaviour(b);
@@ -65,31 +67,31 @@ public class SlaveAgent extends Agent
         }
 
     }
-    class Calculate extends OneShotBehaviour
-    {
+    class Calculate extends OneShotBehaviour {
         public void action(){
 
+            DataReader reader = new DataReader();
+            map = reader.readData(numberOfAttributes,filePath);
 
-            map = CSVReaderNew.parseCSV(numberOfAttributes,msg.getContent());
             finishT = System.currentTimeMillis();
-            System.out.println("Execution time: " + (finishT - startT));
+            System.out.println("Execution time slave: " + (finishT - startT));
 
-            System.out.println("Мap:");
+            //System.out.println("Мap:");
             //OutputMap.output(map);
 
-            SenderMsg c = new SenderMsg();
+            SendMsg c = new SendMsg();
             addBehaviour(c);
         }
 
     }
 
-    class SenderMsg extends OneShotBehaviour
+    class SendMsg extends OneShotBehaviour
     {
         public void action(){
             try{
                 answ.setContentObject(new MapSet(map)); //serializable
-            } catch (IOException e){}
-            answ.setLanguage("my-language");
+            } catch (IOException e){e.printStackTrace();}
+
             send(answ);
             System.out.println(answ.getSender().getLocalName() + " sent a message");
         }
